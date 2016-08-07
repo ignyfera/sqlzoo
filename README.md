@@ -171,7 +171,7 @@ GROUP BY matchid, mdate
 
 ### 13. List every match with the goals scored by each team as shown.
 ```
-SELECT mdate, team1, SUM(score1) as score1, team2, sum(score2) as score2
+SELECT mdate, team1, SUM(score1) AS score1, team2, sum(score2) AS score2
 FROM   (SELECT mdate,
           team1,
           CASE WHEN teamid=team1 THEN 1 ELSE 0 END score1,
