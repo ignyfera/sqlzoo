@@ -148,7 +148,7 @@ ORDER BY teamname
 ### 10. Show the stadium and the number of goals scored in each stadium.
 ```
 SELECT stadium, COUNT(*) AS goals
-FROM game JOIN goal ON game.id=goal.matchid
+  FROM game JOIN goal ON game.id=goal.matchid
 GROUP BY stadium
 ORDER BY stadium
 ```
@@ -180,4 +180,89 @@ FROM   (SELECT mdate,
         FROM game LEFT OUTER JOIN goal ON game.id=goal.matchid) x
 GROUP BY mdate, team1, team2
 ORDER BY mdate, team1, team2
+```
+
+## More JOIN
+
+### 7. Obtain the cast list for 'Casablanca'.
+```
+SELECT actor.name 
+FROM actor JOIN (SELECT casting.actorid
+                 FROM   movie JOIN casting ON movie.id=casting.movieid
+                 WHERE title='Casablanca') x on actor.id=x.actorid
+```
+
+### 9. List the films in which 'Harrison Ford' has appeared.
+```
+SELECT title FROM movie
+WHERE  id IN (SELECT movieid FROM casting
+              WHERE actorid=(SELECT id FROM actor
+                             WHERE  name='Harrison Ford'))
+```
+
+### 10. List the films where 'Harrison Ford' has appeared but not in the starring role.
+```
+SELECT title FROM movie
+ WHERE id IN (SELECT movieid FROM casting
+              WHERE actorid=(SELECT id FROM actor
+                             WHERE  name='Harrison Ford' and ord!=1))
+```
+
+### 11. List the films together with the leading star for all 1962 films.
+```
+SELECT x.title, actor.name
+  FROM actor JOIN (SELECT movie.id, movie.title, casting.actorid
+                 FROM movie JOIN casting ON movie.id=casting.movieid
+                 WHERE movie.yr=1962 and ord=1) x ON actor.id=x.actorid
+```
+
+### 12. Which were the busiest years for 'John Travolta'? Show the year and the number of movies he made each year for any year in which he made more than 2 movies.
+```
+SELECT movie.yr, COUNT(movie.title) as count
+  FROM movie JOIN casting ON movie.id=casting.movieid
+             JOIN actor   ON casting.actorid=actor.id
+ WHERE actor.name='John Travolta'
+GROUP BY movie.yr
+HAVING COUNT(movie.title) > 2
+```
+
+### 13. List the film title and the leading actor for all of the films 'Julie Andrews' played in.
+```
+SELECT x.title, actor.name
+  FROM (SELECT DISTINCT movie.id, movie.title
+        FROM movie JOIN casting ON movie.id=casting.movieid
+                   JOIN actor   ON casting.actorid=actor.id
+       WHERE actor.name='Julie Andrews') x
+        JOIN casting ON x.id=casting.movieid
+        JOIN actor   ON casting.actorid=actor.id
+ WHERE casting.ord=1
+```
+
+### 14. Obtain a list, in alphabetical order, of actors who've had at least 30 starring roles.
+```
+SELECT actor.name
+  FROM actor JOIN casting ON actor.id=casting.actorid
+ WHERE casting.ord=1
+GROUP BY actor.name
+HAVING COUNT(movieid) >= 30
+ORDER BY actor.name
+```
+
+### 15. List the films released in the year 1978 ordered by the number of actors in the cast.
+```
+SELECT movie.title, COUNT(casting.actorid) as count
+  FROM movie JOIN casting ON movie.id=casting.movieid
+ WHERE movie.yr=1978
+GROUP BY movie.title
+ORDER BY COUNT(casting.actorid) desc
+```
+
+### 16. List all the people who have worked with 'Art Garfunkel'.
+```
+SELECT actor.name
+  FROM actor JOIN casting ON actor.id=casting.actorid
+ WHERE casting.movieid IN (SELECT casting.movieid
+                             FROM casting JOIN actor ON casting.actorid=actor.id
+                            WHERE actor.name='Art Garfunkel') AND
+       actor.name!='Art Garfunkel'
 ```
