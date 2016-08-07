@@ -58,3 +58,44 @@ SELECT name, continent FROM world x
 WHERE  population >= ALL(SELECT 3*population FROM world y
                           WHERE y.continent=x.continent AND x.name != y.name)
 ```
+
+## SUM and COUNT
+
+### 3. Give the total GDP of Africa.
+```
+SELECT SUM(gdp) FROM world
+WHERE  continent='Africa'
+```
+
+### 4. How many countries have an area of at least 1000000.
+```
+SELECT COUNT(*) FROM world
+WHERE  area >= 1000000 AND area IS NOT NULL
+```
+
+### 6. For each continent show the continent and number of countries.
+```
+SELECT continent, COUNT(name) FROM world
+GROUP BY continent
+```
+
+### 7. For each continent show the continent and number of countries with populations of at least 10 million.
+```
+SELECT continent, COUNT(name) FROM world
+WHERE  population > 10000000 AND population IS NOT NULL
+GROUP BY continent
+```
+
+### 8. List the continents that have a total population of at least 100 million.
+```
+SELECT continent FROM (SELECT continent, SUM(population) as population
+                       FROM world y
+                       GROUP BY continent) x
+WHERE  x.population >= 100000000
+```
+
+```
+SELECT continent FROM world
+GROUP BY continent
+HAVING SUM(population) > 100000000
+```
