@@ -19,9 +19,9 @@ SELECT name, population FROM world
 ### 6. Which countries have a GDP greater than every country in Europe? (Some countries may have NULL gdp values.)
 ```
 SELECT name FROM world
-WHERE  gdp > ALL(SELECT gdp FROM world
-                 WHERE  continent='Europe' AND gdp IS NOT NULL)
-AND gdp IS NOT NULL;
+ WHERE gdp > ALL(SELECT gdp FROM world
+                 WHERE  continent='Europe' AND gdp IS NOT NULL) AND
+       gdp IS NOT NULL;
 ```
 
 ### 7. Find the largest country (by area) in each continent; show the continent, the name and the area.
@@ -40,14 +40,14 @@ SELECT continent, name, area FROM world x
 ### 8. List each continent and the name of the country that comes first alphabetically.
 ```
 SELECT continent, name FROM world x
-WHERE  name <= all (SELECT name FROM world y
-                    WHERE  y.continent=x.continent AND name IS NOT NULL)
+ WHERE name <= all (SELECT name FROM world y
+                     WHERE y.continent=x.continent AND name IS NOT NULL)
 ```
 
 ### 9. Find the continents where all countries have a population <= 25000000. Then find the names of the countries associated with these continents. Show name, continent and population.
 ```
 SELECT name, continent, population FROM world x
-WHERE  25000000 >= ALL(SELECT population FROM world y
+ WHERE 25000000 >= ALL(SELECT population FROM world y
                         WHERE y.continent=x.continent)
 ORDER BY continent
 ```
@@ -55,7 +55,7 @@ ORDER BY continent
 ### 10. Some countries have populations more than three times that of any of their neighbours (in the same continent). Give the countries and continents.
 ```
 SELECT name, continent FROM world x
-WHERE  population >= ALL(SELECT 3*population FROM world y
+ WHERE population >= ALL(SELECT 3*population FROM world y
                           WHERE y.continent=x.continent AND x.name != y.name)
 ```
 
@@ -64,13 +64,13 @@ WHERE  population >= ALL(SELECT 3*population FROM world y
 ### 3. Give the total GDP of Africa.
 ```
 SELECT SUM(gdp) FROM world
-WHERE  continent='Africa'
+ WHERE continent='Africa'
 ```
 
 ### 4. How many countries have an area of at least 1000000.
 ```
 SELECT COUNT(*) FROM world
-WHERE  area >= 1000000 AND area IS NOT NULL
+ WHERE area >= 1000000 AND area IS NOT NULL
 ```
 
 ### 6. For each continent show the continent and number of countries.
@@ -82,16 +82,16 @@ GROUP BY continent
 ### 7. For each continent show the continent and number of countries with populations of at least 10 million.
 ```
 SELECT continent, COUNT(name) FROM world
-WHERE  population > 10000000 AND population IS NOT NULL
+ WHERE population > 10000000 AND population IS NOT NULL
 GROUP BY continent
 ```
 
 ### 8. List the continents that have a total population of at least 100 million.
 ```
 SELECT continent FROM (SELECT continent, SUM(population) as population
-                       FROM world y
-                       GROUP BY continent) x
-WHERE  x.population >= 100000000
+                         FROM world y
+                     GROUP BY continent) x
+ WHERE x.population >= 100000000
 ```
 
 ```
@@ -105,8 +105,8 @@ HAVING SUM(population) > 100000000
 ### 4. Show the team1, team2 and player for every goal scored by a player called Mario player LIKE 'Mario%'.
 ```
 SELECT game.team1, game.team2, goal.player
-FROM   game JOIN goal ON game.id=goal.matchid
-WHERE  goal.player LIKE 'Mario %'
+  FROM game JOIN goal ON game.id=goal.matchid
+ WHERE goal.player LIKE 'Mario %'
 ```
 
 ### 5. Show player, teamid, coach, gtime for all goals scored in the first 10 minutes, gtime<=10.
@@ -119,15 +119,15 @@ SELECT goal.player, goal.teamid, eteam.coach, goal.gtime
 ### 6. List the the dates of the matches and the name of the team in which 'Fernando Santos' was the team1 coach.
 ```
 SELECT mdate, teamname
-FROM   game JOIN eteam ON game.team1=eteam.id
-WHERE  eteam.coach='Fernando Santos'
+  FROM game JOIN eteam ON game.team1=eteam.id
+ WHERE eteam.coach='Fernando Santos'
 ```
 
 ### 7. List the player for every goal scored in a game where the stadium was 'National Stadium, Warsaw'.
 ```
 SELECT player
-FROM   goal JOIN game ON goal.matchid=game.id
-WHERE  stadium='National Stadium, Warsaw'
+  FROM goal JOIN game ON goal.matchid=game.id
+ WHERE stadium='National Stadium, Warsaw'
 ```
 
 ### 8. Show the name of all players who scored a goal against Germany.
@@ -172,7 +172,7 @@ GROUP BY matchid, mdate
 ### 13. List every match with the goals scored by each team as shown.
 ```
 SELECT mdate, team1, SUM(score1) AS score1, team2, sum(score2) AS score2
-FROM   (SELECT mdate,
+  FROM (SELECT mdate,
           team1,
           CASE WHEN teamid=team1 THEN 1 ELSE 0 END score1,
           team2,
@@ -195,7 +195,7 @@ FROM actor JOIN (SELECT casting.actorid
 ### 9. List the films in which 'Harrison Ford' has appeared.
 ```
 SELECT title FROM movie
-WHERE  id IN (SELECT movieid FROM casting
+ WHERE id IN (SELECT movieid FROM casting
               WHERE actorid=(SELECT id FROM actor
                              WHERE  name='Harrison Ford'))
 ```
@@ -265,4 +265,68 @@ SELECT actor.name
                              FROM casting JOIN actor ON casting.actorid=actor.id
                             WHERE actor.name='Art Garfunkel') AND
        actor.name!='Art Garfunkel'
+```
+
+## Misc.
+
+### 1. List the teachers who have NULL for their department.
+```
+SELECT name FROM teacher
+ WHERE dept IS NULL
+```
+
+### 2. Note the INNER JOIN misses the teachers with no department and the departments with no teacher.
+```
+SELECT teacher.name, dept.name as dept
+  FROM teacher INNER JOIN dept ON teacher.dept=dept.id
+```
+
+### 3. Use a different JOIN so that all teachers are listed.
+```
+SELECT teacher.name, dept.name as dept
+  FROM teacher LEFT OUTER JOIN dept on teacher.dept=dept.id
+```
+
+### 4. Use a different JOIN so that all departments are listed.
+```
+SELECT teacher.name, dept.name as dept
+  FROM teacher RIGHT OUTER JOIN dept on teacher.dept=dept.id
+```
+
+### 6. Use the COALESCE function and a LEFT JOIN to print the teacher name and department name. Use the string 'None' where there is no department.
+```
+SELECT teacher.name, COALESCE(dept.name, 'None') as dept
+  FROM teacher LEFT OUTER JOIN dept on teacher.dept=dept.id
+```
+
+### 7. Use COUNT to show the number of teachers and the number of mobile phones.
+```
+SELECT COUNT(name), COUNT(mobile)
+  FROM teacher
+```
+
+### 8. Use COUNT and GROUP BY dept.name to show each department and the number of staff. Use a RIGHT JOIN to ensure that the Engineering department is listed.
+```
+SELECT dept.name, COUNT(teacher.name) as teachers
+  FROM teacher RIGHT OUTER JOIN dept ON teacher.dept=dept.id
+GROUP BY dept.name
+```
+
+### 9. Use CASE to show the name of each teacher followed by 'Sci' if the teacher is in dept 1 or 2 and 'Art' otherwise.
+```
+SELECT name,
+       CASE WHEN dept=1 OR dept=2 THEN 'Sci'
+            ELSE 'Art'
+       END
+  FROM teacher
+```
+
+### 10. Use CASE to show the name of each teacher followed by 'Sci' if the teacher is in dept 1 or 2, show 'Art' if the teacher's dept is 3 and 'None' otherwise.
+```
+SELECT name,
+       CASE WHEN dept=1 OR dept=2 THEN 'Sci'
+            WHEN dept=3 THEN 'Art'
+            ELSE 'None'
+       END
+  FROM teacher
 ```
