@@ -1,5 +1,7 @@
 # sqlzoo
 
+This README contains selected solutions to sqlzoo.net.
+
 ## SELECT basics
 
 ### 1. Show the population of Germany
