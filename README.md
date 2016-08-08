@@ -354,3 +354,24 @@ SELECT subject, ROUND(100*SUM(response*A_STRONGLY_AGREE/100)/SUM(response),0)
         subject='(H) Creative Arts and Design')
 GROUP BY subject
 ```
+
+### 7. Show the average scores for question 'Q22' for each institution that include 'Manchester' in the name.
+```
+SELECT institution, ROUND(SUM(response*score)/SUM(response),0)
+  FROM nss
+ WHERE question='Q22'
+   AND (institution LIKE '%Manchester%')
+GROUP BY institution
+ORDER BY institution
+```
+
+### 8. Show the institution, the total sample size and the number of computing students for institutions in Manchester for 'Q01'.
+```
+SELECT institution, sum(sample), sum(CASE WHEN subject='(8) Computer Science' then sample
+                                     ELSE 0
+                                     END)
+  FROM nss
+ WHERE question='Q01'
+   AND (institution LIKE '%Manchester%')
+GROUP BY institution
+```
